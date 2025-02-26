@@ -68,3 +68,16 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+# To-Do List Backend
+
+## Setup
+1. Clone the repository.
+2. Run `npm install` to install dependencies.
+3. Start the server using `node server.js`.
+
+## API Endpoints
+- `POST /api/signup` - User registration.
+- `POST /api/login` - User login.
+- `GET /api/tasks` - Get all tasks.
+- `POST /api/tasks` - Add a new task.
+- `DELETE /api/tasks/:id` - Delete a task.
