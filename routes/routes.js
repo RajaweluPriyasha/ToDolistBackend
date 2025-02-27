@@ -42,7 +42,14 @@ router.use(authenticate);
 router.get('/tasks', (req, res) => {
   db.all('SELECT * FROM tasks WHERE user_id = ?', [req.userId], (err, tasks) => {
     if (err) return res.status(500).json({ message: 'Database error.' });
-    res.json(tasks);
+
+    // Map tasks to include a default due_date if null
+    const formattedTasks = tasks.map(task => ({
+      ...task,
+      due_date: task.due_date || 'No due date', // Replace null with 'No due date'
+    }));
+
+    res.json(formattedTasks);
   });
 });
 
@@ -51,22 +58,17 @@ router.post('/tasks', (req, res) => {
   const { description, due_date } = req.body;
   if (!description) return res.status(400).json({ message: 'Task description is required.' });
 
+  // If due_date is not provided, set it to null
+  const taskDueDate = due_date || null;
+
   db.run(
     'INSERT INTO tasks (user_id, description, due_date) VALUES (?, ?, ?)',
-    [req.userId, description, due_date],
+    [req.userId, description, taskDueDate],
     (err) => {
       if (err) return res.status(500).json({ message: 'Database error.' });
       res.status(201).json({ message: 'Task added successfully.' });
     }
   );
-});
-
-// Backend: Get All Tasks
-router.get('/tasks', (req, res) => {
-  db.all('SELECT * FROM tasks WHERE user_id = ?', [req.userId], (err, tasks) => {
-    if (err) return res.status(500).json({ message: 'Database error.' });
-    res.json(tasks); // Ensure tasks include due_date
-  });
 });
 
 // Delete a Task
@@ -78,23 +80,23 @@ router.delete('/tasks/:id', (req, res) => {
   });
 });
 
-// Update task status
+// Update task status and due_date
 router.put('/tasks/:id', (req, res) => {
   const taskId = req.params.id;
-  const { status } = req.body;
+  const { status, due_date } = req.body;
 
   // Validate the status
   if (!status || !['pending', 'completed'].includes(status)) {
     return res.status(400).json({ message: 'Invalid status. Status must be "pending" or "completed".' });
   }
 
-  // Update the task status in the database
+  // Update the task status and due_date in the database
   db.run(
-    'UPDATE tasks SET status = ? WHERE id = ? AND user_id = ?',
-    [status, taskId, req.userId],
+    'UPDATE tasks SET status = ?, due_date = ? WHERE id = ? AND user_id = ?',
+    [status, due_date || null, taskId, req.userId],
     (err) => {
       if (err) return res.status(500).json({ message: 'Database error.' });
-      res.json({ message: 'Task status updated successfully.' });
+      res.json({ message: 'Task updated successfully.' });
     }
   );
 });
